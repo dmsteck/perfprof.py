@@ -24,9 +24,9 @@ def perfprof(data, thmax = None, tol = math.sqrt(np.finfo(np.double).eps)):
     Parameters
     ----------
     data : Array of timings/errors to plot.
-           M-by-N matrix where data[i, j] measures the performance
-           of the j-th solver on the i-th problem, with smaller
-           values denoting "better".
+           M-by-N matrix where data[i, j] > 0 measures the
+           performance of the j-th solver on the i-th problem,
+           with smaller values denoting "better".
 
     thmax : Maximum value of theta shown on the x-axis.
             If None then thmax defaults to the largest finite
