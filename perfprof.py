@@ -5,7 +5,7 @@ https://github.com/higham/matlab-guide-3ed/blob/master/perfprof.m
 
     References
     ----------
-    [1] E.D. Dolan, and J. J. More,
+    [1] E. D. Dolan, and J. J. More,
         Benchmarking Optimization Software with Performance Profiles.
         Math. Programming, 91:201-213, 2002.
 """
