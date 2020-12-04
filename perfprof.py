@@ -36,16 +36,10 @@ def thetaColumn(col, minvals):
     return th
 
 
-def makeStaircase(col):
-    # Idea: use np.unique with return_counts=True and then use np.cumsum
-    theta = np.unique(col)
+def makeStaircase(col, thmax, tol):
+    theta, counts = np.unique(col, return_counts=True)
     r = len(theta)
-    # TODO: simplify
-    myarray = np.repeat(col, r).reshape(len(col), r) <= \
-        np.repeat(theta, len(col)).reshape((len(col), r), order='F')
-    myarray = np.array(myarray, dtype=np.double)
-    prob = np.sum(myarray, axis=0) / len(col)
-    # Get points to print staircase plot
+    prob = np.cumsum(counts) / len(col)    
     # TODO: get rid of floating arange
     k = np.array(np.floor(np.arange(0, r, 0.5)), dtype = np.int)
     x = theta[k[1:]]
@@ -95,7 +89,7 @@ def perfprof(data, thmax = None, tol = np.sqrt(np.finfo(np.double).eps)):
         col = thetaColumn(data[:, solver], minvals)  # performance ratio
         col = col[col <= thmax] # crop and remove infs/NaNs
 
-        x, y = makeStaircase(col)
+        x, y = makeStaircase(col, thmax, tol)
 
         # Ensure endpoints plotted correctly
         if x[0] >= 1 + tol:
@@ -106,6 +100,7 @@ def perfprof(data, thmax = None, tol = np.sqrt(np.finfo(np.double).eps)):
             y = np.append(y, y[-1])
 
         # plot current line
+        # TODO: use plt.step
         h[solver] = plt.plot(x, y)
 
     # set xlim
