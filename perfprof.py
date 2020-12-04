@@ -12,28 +12,62 @@ https://github.com/higham/matlab-guide-3ed/blob/master/perfprof.m
 
 __all__ = ['perfprof']
 
-import math
 import numpy as np
 import matplotlib.pyplot as plt
 
 
-def perfprof(data, thmax = None, tol = math.sqrt(np.finfo(np.double).eps)):
+def thetaMax(data, minvals):
+    """
+    """
+    assert np.all(minvals > 0)
+    tmax = np.max(data, axis=1, initial=0, where=(data < np.inf))
+    thmax = np.max(tmax / minvals, initial=1.01)
+    return thmax
+
+
+def thetaColumn(col, minvals):
+    """
+    Performance ratios for an individual solver against the vector of minimum values.
+    Division by Inf produces NaN.
+    """
+    assert np.all(minvals > 0)
+    th = np.full(np.shape(col), np.nan)
+    th[minvals < np.inf] = col / minvals
+    return th
+
+
+def makeStaircase(col):
+    # Idea: use np.unique with return_counts=True and then use np.cumsum
+    theta = np.unique(col)
+    r = len(theta)
+    # TODO: simplify
+    myarray = np.repeat(col, r).reshape(len(col), r) <= \
+        np.repeat(theta, len(col)).reshape((len(col), r), order='F')
+    myarray = np.array(myarray, dtype=np.double)
+    prob = np.sum(myarray, axis=0) / len(col)
+    # Get points to print staircase plot
+    # TODO: get rid of floating arange
+    k = np.array(np.floor(np.arange(0, r, 0.5)), dtype = np.int)
+    x = theta[k[1:]]
+    y = prob[k[:-1]]
+    return x, y
+
+
+def perfprof(data, thmax = None, tol = np.sqrt(np.finfo(np.double).eps)):
     """
     Peformance profile for the input data.
 
     Parameters
     ----------
     data : Array of timings/errors to plot.
-           M-by-N matrix where data[i, j] > 0 measures the
-           performance of the j-th solver on the i-th problem,
-           with smaller values denoting "better".
+           M-by-N matrix where data[i, j] > 0 measures the performance of the
+           j-th solver on the i-th problem, with smaller values denoting "better".
 
     thmax : Maximum value of theta shown on the x-axis.
-            If None then thmax defaults to the largest finite
-            performance ratio, with a minimum value of 1.01.
+            Defaults to max(tm, 1.01), where tm is the largest finite performance ratio.
 
-    tol : Tolerance for endpoint clamping. Defaults to sqrt(eps),
-          where eps is the double precision machine accuracy.
+    tol : Tolerance for endpoint clamping.
+          Defaults to sqrt(eps), where eps is the double precision machine accuracy.
     
     Returns
     -------
@@ -41,44 +75,27 @@ def perfprof(data, thmax = None, tol = math.sqrt(np.finfo(np.double).eps)):
             supplied by the user or computed by the function.
     
     h : array of Line2D handles of the individual plot lines.
-
     """
 
     data = np.asarray(data).astype(np.double)
+    m, n = data.shape  # `m` problems, `n` solvers
 
-    minvals = np.min(data, axis=1, initial=0, where=~np.isnan(data))
+    # Row-wise minima. NaN values are treated like +infinity.
+    minvals = np.min(data, axis=1, initial=np.inf, where=~np.isnan(data))
 
-    # Discard invalid problem data
-    valid = (minvals > 0)
-    if ~np.any(valid):
-        raise Exception("No valid problems in the dataset")
-    data = data[valid, :]
-    minvals = minvals[valid]
+    # Check for invalid performance measurements
+    if np.any(minvals <= 0):
+        raise Exception("Data contains non-positive performance measurements")
 
     if thmax is None:
-        thmax = np.max(np.max(data, axis=1, initial=0, where=(data < np.inf)) / minvals)
-        thmax = np.maximum(thmax, 1.01)
+        thmax = thetaMax(data, minvals)
 
-    m, n = data.shape  # `m` problems, `n` solvers
     h = [None] * n
     for solver in range(n):  # for each solver
-        col = data[:, solver] / minvals  # performance ratio
+        col = thetaColumn(data[:, solver], minvals)  # performance ratio
         col = col[col <= thmax] # crop and remove infs/NaNs
 
-        theta = np.unique(col)
-        r = len(theta)
-
-        # TODO: simplify
-        myarray = np.repeat(col, r).reshape(len(col), r) <= \
-            np.repeat(theta, len(col)).reshape((len(col), r), order='F')
-        myarray = np.array(myarray, dtype=np.double)
-        prob = np.sum(myarray, axis=0) / m
-
-        # Get points to print staircase plot
-        # TODO: get rid of floating arange
-        k = np.array(np.floor(np.arange(0, r, 0.5)), dtype = np.int)
-        x = theta[k[1:]]
-        y = prob[k[0:-1]]
+        x, y = makeStaircase(col)
 
         # Ensure endpoints plotted correctly
         if x[0] >= 1 + tol:
@@ -94,7 +111,6 @@ def perfprof(data, thmax = None, tol = math.sqrt(np.finfo(np.double).eps)):
     # set xlim
     plt.xlim([1, thmax])
     plt.ylim([0, 1.01])
-#    plt.draw()
-    plt.show()
+    plt.show()  #plt.draw()?
 
     return thmax, h

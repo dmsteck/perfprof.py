@@ -6,7 +6,7 @@ import perfprof
 #                 [5, 8, 2],
 #                 [9, 3, 6]])
 
-data = np.array([[1, 2], [np.inf, 3], [0, 0]])
+data = np.array([[1, 2], [np.inf, 3], [1, 1]])
 
 perfprof.perfprof(data)
 
