@@ -1,17 +1,5 @@
-Get rid of floating point arange
-
 Add support for fixing tiny relative errors
 
-Clarify/fix behaviour for NaNs/zeroes. In principle the ratios should
-be computed as follows:
-0 / 0 = 1
->0 / 0 = inf
-inf / >=0 = inf
-inf / inf = inf (maybe)
-
-Split main function (e.g., maxTheta, minValues, makeStaircase and plotProfile)
-and add doctests/unit tests for all of them
-
-Simplify staircase building
+Automatically discard zero timings
 
 add REQUIREMENTS
