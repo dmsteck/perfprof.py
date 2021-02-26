@@ -28,10 +28,10 @@ def thetaMax(data, minvals):
 def theta(col, minvals):
     """
     Performance ratios for an individual solver against the vector of minimum values.
-    Division by Inf produces NaN.
+    Problems that are not solved by any algorithm have their ratios set to Inf.
     """
     assert np.all(minvals > 0)
-    th = np.full(np.shape(col), np.nan)
+    th = np.full(np.shape(col), np.inf)
     valid = (minvals < np.inf)
     th[valid] = col[valid] / minvals[valid]
     return th
@@ -91,8 +91,8 @@ def perfprof(data, linestyle, thmax = None, tol = np.sqrt(np.finfo(np.double).ep
     m, n = data.shape  # `m` problems, `n` solvers
 
     # Check input
-    if len(linestyle) != n:
-        raise ValueError("Number of line specs doesn't match number of solvers")
+    if len(linestyle) < n:
+        raise ValueError("Number of line specs < number of solvers")
 
     # Row-wise minima. NaN values are treated like +infinity.
     minvals = np.min(data, axis=1, initial=np.inf, where=~np.isnan(data))
