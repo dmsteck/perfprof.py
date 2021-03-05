@@ -28,7 +28,7 @@ def thetaMax(data, minvals):
 def theta(col, minvals):
     """
     Performance ratios for an individual solver against the vector of minimum values.
-    Problems that are not solved by any algorithm have their ratios set to Inf.
+    Problems that are not solved by any algorithm have their ratios set to +Inf.
     """
     assert np.all(minvals > 0)
     th = np.full(np.shape(col), np.inf)
@@ -103,22 +103,27 @@ def perfprof(data, linestyle, thmax = None, tol = np.sqrt(np.finfo(np.double).ep
     if thmax is None:
         thmax = thetaMax(data, minvals)
 
-    h = [None] * n
-    for solver in range(n):  # for each solver
+    def makePlot(solver):
         col = theta(data[:, solver], minvals)  # performance ratio
-        col = col[col <= thmax] # crop and remove infs/NaNs
+        col = col[col <= thmax]  # crop and remove infs/NaNs
 
         if len(col) == 0:
-            continue
+            return None
 
         th, prob = makeStaircase(col, m, thmax, tol)
 
         # plot current line and disable frame clipping (to support y-intercept marking)
-        h[solver] = plt.step(th, prob, linestyle[solver], where='post', **kwargs)
-        h[solver][0].set_clip_on(False)
+        result = plt.step(th, prob, linestyle[solver], where='post', **kwargs)
+        result[0].set_clip_on(False)
+
+        return result
+
+    h = [makePlot(solver) for solver in range(n)]
 
     # set axis limits
     plt.xlim([1, thmax])
     plt.ylim([0, 1.01])
+    plt.xlabel('performance ratio')
+    plt.ylabel('problems solved')
 
     return thmax, h
