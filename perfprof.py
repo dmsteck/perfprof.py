@@ -9,14 +9,11 @@ https://github.com/higham/matlab-guide-3ed/blob/master/perfprof.m
         Benchmarking Optimization Software with Performance Profiles.
         Math. Programming, 91:201-213, 2002.
 """
-
-__all__ = ['perfprof']
-
 import numpy as np
 import matplotlib.pyplot as plt
 
 
-def thetaMax(data, minvals):
+def _thetaMax(data, minvals):
     """
     """
     assert np.all(minvals > 0)
@@ -25,7 +22,7 @@ def thetaMax(data, minvals):
     return thmax
 
 
-def theta(col, minvals):
+def _theta(col, minvals):
     """
     Performance ratios for an individual solver against the vector of minimum values.
     Problems that are not solved by any algorithm have their ratios set to +Inf.
@@ -37,7 +34,7 @@ def theta(col, minvals):
     return th
 
 
-def makeStaircase(col, m, thmax, tol):
+def _makeStaircase(col, m, thmax, tol):
     """
     Assemble staircase (x, y) pairs.
     col : "column" of theta values
@@ -101,16 +98,16 @@ def perfprof(data, linestyle, thmax = None, tol = np.sqrt(np.finfo(np.double).ep
         raise ValueError("Data contains non-positive performance measurements")
 
     if thmax is None:
-        thmax = thetaMax(data, minvals)
+        thmax = _thetaMax(data, minvals)
 
     def makePlot(solver):
-        col = theta(data[:, solver], minvals)  # performance ratio
+        col = _theta(data[:, solver], minvals)  # performance ratio
         col = col[col <= thmax]  # crop and remove infs/NaNs
 
         if len(col) == 0:
             return None
 
-        th, prob = makeStaircase(col, m, thmax, tol)
+        th, prob = _makeStaircase(col, m, thmax, tol)
 
         # plot current line and disable frame clipping (to support y-intercept marking)
         result = plt.step(th, prob, linestyle[solver], where='post', **kwargs)
