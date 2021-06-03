@@ -13,9 +13,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def _thetaMax(data, minvals):
-    """
-    """
+def _best_timings(data):
+    """Row-wise minima. NaN values are treated like +infinity."""
+    return np.min(data, axis=1, initial=np.inf, where=~np.isnan(data))
+
+
+def _theta_max(data, minvals):
+    """Compute maximal performance ratio among all problems."""
     assert np.all(minvals > 0)
     tmax = np.max(data, axis=1, initial=0, where=(data < np.inf))
     thmax = np.max(tmax / minvals, initial=1.01)
@@ -34,26 +38,26 @@ def _theta(col, minvals):
     return th
 
 
-def _makeStaircase(col, m, thmax, tol):
+def _make_staircase(theta, m, thmax, tol):
     """
     Assemble staircase (x, y) pairs.
-    col : "column" of theta values
+    theta : "column" of theta values
     m : number of problems
     thmax : maximum value of theta for endpoint clamping
     tol : theta tolerance for endpoint clamping
     """
-    theta, counts = np.unique(col, return_counts=True)
+    x, counts = np.unique(theta, return_counts=True)
     prob = np.cumsum(counts) / m
 
     # Ensure endpoints plotted correctly
-    if theta[0] >= 1 + tol:
-        theta = np.append(1, theta)
+    if x[0] >= 1 + tol:
+        x = np.append(1, x)
         prob = np.append(0, prob)
-    if theta[-1] < thmax - tol:
-        theta = np.append(theta, thmax)
+    if x[-1] < thmax - tol:
+        x = np.append(x, thmax)
         prob = np.append(prob, prob[-1])
 
-    return theta, prob
+    return x, prob
 
 
 def perfprof(data, linestyle, thmax = None, tol = np.sqrt(np.finfo(np.double).eps), **kwargs):
@@ -91,23 +95,22 @@ def perfprof(data, linestyle, thmax = None, tol = np.sqrt(np.finfo(np.double).ep
     if len(linestyle) < n:
         raise ValueError("Number of line specs < number of solvers")
 
-    # Row-wise minima. NaN values are treated like +infinity.
-    minvals = np.min(data, axis=1, initial=np.inf, where=~np.isnan(data))
+    minvals = _best_timings(data)
 
     if np.any(minvals <= 0):
         raise ValueError("Data contains non-positive performance measurements")
 
     if thmax is None:
-        thmax = _thetaMax(data, minvals)
+        thmax = _theta_max(data, minvals)
 
-    def makePlot(solver):
+    def make_plot(solver):
         col = _theta(data[:, solver], minvals)  # performance ratio
         col = col[col <= thmax]  # crop and remove infs/NaNs
 
         if len(col) == 0:
             return None
 
-        th, prob = _makeStaircase(col, m, thmax, tol)
+        th, prob = _make_staircase(col, m, thmax, tol)
 
         # plot current line and disable frame clipping (to support y-intercept marking)
         result = plt.step(th, prob, linestyle[solver], where='post', **kwargs)
@@ -115,7 +118,7 @@ def perfprof(data, linestyle, thmax = None, tol = np.sqrt(np.finfo(np.double).ep
 
         return result
 
-    h = [makePlot(solver) for solver in range(n)]
+    h = [make_plot(solver) for solver in range(n)]
 
     # set axis limits
     plt.xlim([1, thmax])
