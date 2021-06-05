@@ -1,6 +1,11 @@
 """
 Recall that data[i, j] > 0 measures the performance of the
 j-th solver on the i-th problem
+
+To run tests:
+python3 -m venv .test
+python3 setup.py install --user
+python3 -m pytest [-v]
 """
 import numpy as np
 
