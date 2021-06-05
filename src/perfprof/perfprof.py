@@ -41,7 +41,7 @@ def _theta(col, minvals):
 def _make_staircase(theta, m, thmax, tol):
     """
     Assemble staircase (x, y) pairs.
-    theta : "column" of theta values
+    theta : theta values of an individual solver
     m : number of problems
     thmax : maximum value of theta for endpoint clamping
     tol : theta tolerance for endpoint clamping
@@ -50,10 +50,10 @@ def _make_staircase(theta, m, thmax, tol):
     prob = np.cumsum(counts) / m
 
     # Ensure endpoints plotted correctly
-    if x[0] >= 1 + tol:
+    if len(x) == 0 or x[0] >= 1 + tol:
         x = np.append(1, x)
         prob = np.append(0, prob)
-    if x[-1] < thmax - tol:
+    if len(x) <= 1 or x[-1] < thmax - tol:
         x = np.append(x, thmax)
         prob = np.append(prob, prob[-1])
 
