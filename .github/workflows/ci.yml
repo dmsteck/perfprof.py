@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [2.7, 3.5, 3.6, 3.7, 3.8]
+        python-version: [3.7, 3.8]
 
     steps:
       - uses: actions/checkout@v2
@@ -26,4 +26,4 @@ jobs:
           python setup.py install --user
       - name: Test with pytest
         run: |
-          python -m pytest
+          python -m pytest -v
