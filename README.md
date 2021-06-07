@@ -18,7 +18,7 @@ Common choices for `t` are:
 
 Given this data, a typical performance profile may look like this:
 
-![Example](examples/example.svg "Example performance profile")
+![Example](https://raw.githubusercontent.com/dmsteck/perfprof.py/master/examples/example.svg "Example performance profile")
 
 Each algorithm has one line plot, where a point `(x, y)` means that, for `x` of the problem set, the algorithm in question was within a factor of `y` of the respective best algorithm.
 For example:
